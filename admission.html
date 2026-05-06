@@ -72,7 +72,7 @@
   </div>
   <script>
     const root = document.documentElement;
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = window.location.origin;
     const savedTheme = localStorage.getItem("du-theme");
     const captchaCode = document.getElementById("captchaCode");
     const refreshCaptcha = document.getElementById("refreshCaptcha");
@@ -107,7 +107,7 @@
         });
         result = await response.json();
       } catch (err) {
-        result = { ok: false, message: "Connection error. Make sure the server is running at http://127.0.0.1:8000." };
+        result = { ok: false, message: "Connection error. Make sure the server is running at  API_BASE = window.location.origin." };
       }
       admissionStatus.textContent = result.message;
       admissionStatus.className = `form-status ${result.ok ? "success" : "error"}`;

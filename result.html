@@ -86,7 +86,7 @@
   </div>
   <script>
     const root = document.documentElement;
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = window.location.origin;
     const savedTheme = localStorage.getItem("du-theme");
     const resultForm = document.getElementById("resultForm");
     const resultStatus = document.getElementById("resultStatus");

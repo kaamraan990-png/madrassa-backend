@@ -181,7 +181,7 @@ class MadrassaHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         origin = self.headers.get("Origin", "")
-        if origin.startswith("http://127.0.0.1:") or origin.startswith("http://localhost:"):
+        if origin.startswith("https://madrassa-backend-1-5bqd.onrender.com:") or origin.startswith("https://madrassa-backend-1-5bqd.onrender.com:"):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Credentials", "true")
         else:
@@ -227,7 +227,7 @@ class MadrassaHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         origin = self.headers.get("Origin", "")
-        if origin.startswith("http://127.0.0.1:") or origin.startswith("http://localhost:"):
+        if origin.startswith("https://madrassa-backend-1-5bqd.onrender.com") or origin.startswith("https://madrassa-backend-1-5bqd.onrender.com:"):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Access-Control-Allow-Credentials", "true")
         else:
@@ -562,8 +562,13 @@ class MadrassaHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Not Found")
 
 
+import os
+
 if __name__ == "__main__":
     init_db()
-    server = ThreadingHTTPServer(("", 8000), MadrassaHandler)
-    print("Darul Uloom server running at http://127.0.0.1:8000")
+
+    PORT = int(os.environ.get("PORT", 10000))
+
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), MadrassaHandler)
+    print(f"Server running on port {PORT}")
     server.serve_forever()

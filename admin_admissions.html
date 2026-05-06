@@ -244,7 +244,7 @@
 
   <script>
     const root = document.documentElement;
-    const API_BASE = "http://127.0.0.1:8000";
+    const API_BASE = window.location.origin;
     if (localStorage.getItem("du-theme") === "dark") root.classList.add("dark-mode");
 
     const gate = document.getElementById("adminGate");
@@ -275,7 +275,7 @@
         const result = await res.json();
         if (result.ok) { sessionStorage.setItem("admin-auth", "yes"); showDashboard(); }
         else { gateStatus.textContent = result.message; gateStatus.className = "form-status error"; }
-      } catch { gateStatus.textContent = "Connection error. Is the server running at localhost:8000?"; gateStatus.className = "form-status error"; }
+      } catch { gateStatus.textContent = "Connection error. Is the server running at const API_BASE = window.location.origin;"; gateStatus.className = "form-status error"; }
     });
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
