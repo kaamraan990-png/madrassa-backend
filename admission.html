@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Admission | Darul Uloom Asufatul Islamia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="portal-page-body">
+  <div class="page-shell portal-page-shell">
+    <header class="portal-page-header">
+      <a class="back-link" href="index.html">Home</a>
+      <div>
+        <p class="section-tag">Online Admission</p>
+        <h1 class="portal-page-title">Student Admission Portal</h1>
+        <p class="portal-page-copy">Fill in the admission form to request registration for Hifz-ul-Quran or Islamic Studies.</p>
+      </div>
+    </header>
+
+    <main class="portal-page-main">
+      <section class="portal-section portal-registration">
+        <article class="admission-card portal-form-card">
+          <div class="portal-hero-line">
+            <div>
+              <p class="mini-tag">New Admission</p>
+              <h4>Student Registration</h4>
+            </div>
+            <span class="portal-status">Open Now</span>
+          </div>
+          <p class="portal-intro">Submit the student details below. Required fields must be completed before sending.</p>
+          <form class="registration-form" id="admissionForm">
+            <label>
+              <span>Student Name</span>
+              <input type="text" name="student_name" placeholder="Enter student name">
+            </label>
+            <label>
+              <span>Parent Name</span>
+              <input type="text" name="parent_name" placeholder="Enter parent name">
+            </label>
+            <label>
+              <span>Phone Number</span>
+              <input type="tel" name="phone" placeholder="Enter phone number">
+            </label>
+            <label>
+              <span>Preferred Course</span>
+              <select name="course">
+                <option>Hifz-ul-Quran</option>
+                <option>Islamic Studies</option>
+                <option>Hifz + Islamic Studies</option>
+              </select>
+            </label>
+            <div class="captcha-wrap">
+              <div class="captcha-box">
+                <span class="captcha-label">Security Code</span>
+                <strong id="captchaCode">8472</strong>
+              </div>
+              <button class="btn btn-secondary captcha-refresh" id="refreshCaptcha" type="button">Refresh</button>
+            </div>
+            <label class="captcha-input">
+              <span>Enter Captcha</span>
+              <input type="text" name="captcha" placeholder="Type the code above">
+            </label>
+            <button type="submit" class="btn btn-primary">Submit Registration</button>
+          </form>
+          <p class="form-status" id="admissionStatus"></p>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const API_BASE = "http://127.0.0.1:8000";
+    const savedTheme = localStorage.getItem("du-theme");
+    const captchaCode = document.getElementById("captchaCode");
+    const refreshCaptcha = document.getElementById("refreshCaptcha");
+    const admissionForm = document.getElementById("admissionForm");
+    const admissionStatus = document.getElementById("admissionStatus");
+
+    function generateCaptcha() {
+      return Math.floor(1000 + Math.random() * 9000).toString();
+    }
+
+    if (savedTheme === "dark") {
+      root.classList.add("dark-mode");
+    }
+
+    captchaCode.textContent = generateCaptcha();
+
+    refreshCaptcha.addEventListener("click", () => {
+      captchaCode.textContent = generateCaptcha();
+    });
+
+    admissionForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(admissionForm);
+      const payload = Object.fromEntries(formData.entries());
+
+      let result;
+      try {
+        const response = await fetch(`${API_BASE}/api/admissions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        result = await response.json();
+      } catch (err) {
+        result = { ok: false, message: "Connection error. Make sure the server is running at http://127.0.0.1:8000." };
+      }
+      admissionStatus.textContent = result.message;
+      admissionStatus.className = `form-status ${result.ok ? "success" : "error"}`;
+
+      if (result.ok) {
+        admissionForm.reset();
+        captchaCode.textContent = generateCaptcha();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syllabus | Darul Uloom Asufatul Islamia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="portal-page-body">
+  <div class="page-shell portal-page-shell">
+    <header class="portal-page-header">
+      <a class="back-link" href="index.html">Home</a>
+      <div>
+        <p class="section-tag">Syllabus</p>
+        <h1 class="portal-page-title">Syllabus Portal</h1>
+        <p class="portal-page-copy">Read the current syllabus structure for madrassa programs and revision plans.</p>
+      </div>
+    </header>
+
+    <main class="portal-page-main">
+      <section class="portal-section">
+        <div class="data-grid" id="syllabusList"></div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const API_BASE = "http://127.0.0.1:8000";
+    const savedTheme = localStorage.getItem("du-theme");
+    const syllabusList = document.getElementById("syllabusList");
+
+    if (savedTheme === "dark") {
+      root.classList.add("dark-mode");
+    }
+
+    fetch(`${API_BASE}/api/syllabus`)
+      .then((response) => response.json())
+      .then((data) => {
+        syllabusList.innerHTML = data.items.map((item) => `
+          <article class="data-card">
+            <p class="mini-tag">Syllabus</p>
+            <h4>${item.title}</h4>
+            <p>${item.description}</p>
+          </article>
+        `).join("");
+      })
+      .catch(() => {
+        syllabusList.innerHTML = '<p class="form-status error">Unable to load syllabus right now.</p>';
+      });
+  </script>
+</body>
+</html>

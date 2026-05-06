@@ -1,0 +1,501 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Darul Uloom Asufatul Islamia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .admin-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .gate-card{width:min(460px,100%);padding:44px 40px;border-radius:28px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));box-shadow:var(--shadow);text-align:center;}
+    .gate-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#143d55,#1b7f72);color:#fff;font-size:1.6rem;display:grid;place-items:center;margin:0 auto 22px;box-shadow:0 12px 30px rgba(20,61,85,0.28);}
+    .gate-card h2{margin:0 0 6px;font-family:"Cormorant Garamond",serif;font-size:2rem;}
+    .gate-card>p{margin:0 0 28px;color:var(--muted);font-size:0.92rem;line-height:1.7;}
+    .gate-form{display:grid;gap:14px;text-align:left;}
+    .gate-form label{display:grid;gap:7px;}
+    .gate-form label span{font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary-deep);}
+    .gate-form input{min-height:52px;padding:0 16px;border:1px solid rgba(85,209,194,.16);border-radius:16px;font:inherit;color:var(--text);background:rgba(10,20,33,.9);outline:none;transition:border-color .2s,box-shadow .2s;}
+    .admin-page{display:none;}
+    .admin-page.active{display:block;}
+    .admin-gate.hidden{display:none;}
+    .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .stat-tile{padding:22px 24px;border-radius:20px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,0.08);position:relative;overflow:hidden;}
+    .stat-tile::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;}
+    .stat-tile.all::before{background:linear-gradient(90deg,#143d55,#1b7f72);}
+    .stat-tile.pending::before{background:linear-gradient(90deg,#c6922f,#f0bc68);}
+    .stat-tile.approved::before{background:linear-gradient(90deg,#1b7f72,#55d1c2);}
+    .stat-tile.rejected::before{background:linear-gradient(90deg,#8b3030,#d45555);}
+    .stat-tile small{font-size:0.73rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
+    .stat-tile strong{display:block;font-family:"Cormorant Garamond",serif;font-size:2.4rem;line-height:1;color:var(--text);}
+    .admin-toolbar-v2{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;padding:18px 22px;border-radius:20px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));}
+    .toolbar-left{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .filter-btn{min-height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
+    .filter-btn:hover{background:rgba(27,127,114,.08);color:var(--text);}
+    .filter-btn.active{background:var(--primary-deep);color:#fff;border-color:var(--primary-deep);}
+    .search-wrap{position:relative;}
+    .search-wrap input{min-height:36px;padding:0 14px 0 36px;border-radius:999px;border:1px solid rgba(85,209,194,.16);font:inherit;font-size:0.88rem;color:var(--text);background:rgba(10,20,33,.9);outline:none;width:220px;transition:border-color .2s;}
+    .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none;}
+    .table-wrap-v2{border-radius:22px;border:1px solid var(--border);overflow:hidden;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 24px rgba(20,61,85,0.08);}
+    .admin-table-v2{width:100%;min-width:1000px;border-collapse:collapse;}
+    .admin-table-v2 thead tr{background:rgba(85,209,194,.07);}
+    .admin-table-v2 th{padding:14px 16px;text-align:left;font-size:0.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--primary-deep);border-bottom:1px solid var(--border);white-space:nowrap;}
+    .admin-table-v2 td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+    .admin-table-v2 tbody tr:last-child td{border-bottom:0;}
+    .admin-table-v2 tbody tr{transition:background .15s;}
+    .admin-table-v2 tbody tr:hover{background:rgba(27,127,114,.04);}
+    .status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:0.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+    .status-badge::before{content:"";width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+    .status-badge.Pending{background:rgba(240,188,104,.15);color:#f0bc68;}
+    .status-badge.Pending::before{background:#c6922f;}
+    .status-badge.Approved{background:rgba(85,209,194,.15);color:#55d1c2;}
+    .status-badge.Approved::before{background:#1b7f72;}
+    .status-badge.Rejected{background:rgba(220,80,80,.15);color:#e07070;}
+    .action-row{display:flex;gap:5px;}
+    .act-btn{min-height:30px;padding:0 10px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:0.74rem;font-weight:800;cursor:pointer;transition:all .18s;white-space:nowrap;}
+    .act-btn.approve{background:rgba(27,127,114,.12);color:#1b7f72;border-color:rgba(27,127,114,.24);}
+    .act-btn.approve:hover{background:#1b7f72;color:#fff;}
+    .act-btn.reject{background:rgba(180,50,50,.1);color:#a03030;border-color:rgba(180,50,50,.2);}
+    .act-btn.reject:hover{background:#c04040;color:#fff;}
+    .act-btn.set-pending{background:rgba(198,146,47,.1);color:#8e5b1d;border-color:rgba(198,146,47,.2);}
+    .act-btn.set-pending:hover{background:#c6922f;color:#fff;}
+    .act-btn.delete{background:rgba(100,100,100,.08);color:var(--muted);border-color:var(--border);}
+    .act-btn.delete:hover{background:#555;color:#fff;}
+    .roll-chip{font-family:"Cormorant Garamond",serif;font-size:1rem;font-weight:700;color:#f0bc68;background:rgba(240,188,104,.12);padding:2px 10px;border-radius:8px;}
+    .admin-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px 0 22px;}
+    .admin-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#143d55,#1b7f72);color:#fff;font-size:1rem;font-weight:800;display:grid;place-items:center;flex-shrink:0;}
+    .no-data-row td{text-align:center;padding:52px 24px;color:var(--muted);font-style:italic;}
+    @media(max-width:960px){.admin-stats{grid-template-columns:1fr 1fr;}}
+    @media(max-width:640px){.admin-stats{grid-template-columns:1fr 1fr;gap:10px;}.admin-toolbar-v2{flex-direction:column;align-items:flex-start;}.search-wrap input{width:100%;}}
+  </style>
+</head>
+<body class="portal-page-body">
+
+  <!-- LOGIN GATE -->
+  <div class="admin-gate" id="adminGate">
+    <div class="gate-card">
+      <div class="gate-icon">LOCK</div>
+      <h2>Admin Access</h2>
+      <p>This area is restricted to madrassa administrators. Enter your credentials to continue.</p>
+      <form class="gate-form" id="gateForm">
+        <label>
+          <span>Username</span>
+          <input type="text" name="username" placeholder="admin" autocomplete="username">
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" name="password" placeholder="Enter password" autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary" style="margin-top:6px;">Login to Dashboard</button>
+      </form>
+      <p class="form-status" id="gateStatus" style="margin-top:14px;"></p>
+      <a href="index.html" style="display:block;margin-top:20px;font-size:0.84rem;color:var(--muted);">Back to Homepage</a>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div class="admin-page page-shell" id="adminPage">
+
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="admin-avatar">A</div>
+        <div>
+          <strong style="display:block;font-size:1rem;">Administrator</strong>
+          <span style="font-size:0.78rem;color:var(--muted);">Darul Uloom Asufatul Islamia</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <a href="index.html" class="btn btn-secondary" style="font-size:0.82rem;">Homepage</a>
+        <button class="btn btn-secondary" id="logoutBtn" style="font-size:0.82rem;">Logout</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px;padding:28px 30px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:var(--shadow);">
+      <p class="section-tag" style="margin-bottom:8px;">Admin Panel</p>
+      <h1 style="margin:0 0 8px;font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3.2rem);">Admission Applications</h1>
+      <p style="margin:0;color:var(--muted);line-height:1.7;">Review, approve, or reject applications. Approved students are automatically assigned a Roll Number for their Admit Card.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats">
+      <div class="stat-tile all"><small>Total Applications</small><strong id="statTotal">0</strong></div>
+      <div class="stat-tile pending"><small>Pending Review</small><strong id="statPending">0</strong></div>
+      <div class="stat-tile approved"><small>Approved</small><strong id="statApproved">0</strong></div>
+      <div class="stat-tile rejected"><small>Rejected</small><strong id="statRejected">0</strong></div>
+    </div>
+
+    <!-- Add Student -->
+    <div style="margin-bottom:24px;padding:24px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,.08);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+        <div>
+          <p class="section-tag" style="margin-bottom:8px;">Admin Student Add</p>
+          <h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;">Add Student for Login Portal</h2>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:0.92rem;line-height:1.6;">Add new roll number records that appear in the student login overview.</p>
+        </div>
+      </div>
+      <form id="studentAddForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;">
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Roll Number</span><input type="text" name="student_id" placeholder="DUA101" required></label>
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Student Name</span><input type="text" name="student_name" placeholder="Enter student name" required></label>
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Parahs Completed</span><input type="number" name="revision" placeholder="e.g. 2 Paras" value="0"></label>
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Attendance (%)</span><input type="number" name="attendance" placeholder="e.g. 96" min="0" max="100" value="0"></label>
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Lesson</span><input type="text" name="lesson" placeholder="e.g. Surah Al-Baqarah" value=""></label>
+        <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Progress (%)</span><input type="number" name="progress" placeholder="e.g. 78" min="0" max="100" value="0"></label>
+        <div style="display:flex;align-items:center;gap:12px;grid-column:1 / -1;">
+          <button type="submit" class="btn btn-primary" style="padding:0 18px;">Add Student</button>
+          <span id="studentAddStatus" class="form-status" style="margin:0;">&nbsp;</span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Student Management -->
+    <div style="margin-bottom:24px;padding:24px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,.08);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+        <div>
+          <p class="section-tag" style="margin-bottom:8px;">Student Management</p>
+          <h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;">Edit Student Records</h2>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:0.92rem;line-height:1.6;">View, edit, or delete all student records for the login portal.</p>
+        </div>
+        <button class="btn btn-secondary" id="refreshStudentsBtn" style="font-size:0.82rem;">Refresh</button>
+      </div>
+      <div id="studentsTableContainer">
+        <div style="overflow-x:auto;margin-top:16px;">
+          <table class="admin-table-v2" id="studentsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Roll Number</th>
+                <th>Student Name</th>
+                <th>Parahs Completed</th>
+                <th>Attendance (%)</th>
+                <th>Lesson</th>
+                <th>Progress (%)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+              <tr class="no-data-row"><td colspan="8">Loading student records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="studentEditForm" style="display:none;margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:16px;background:rgba(255,255,255,.05);">
+        <h3 style="margin:0 0 16px;font-family:'Cormorant Garamond',serif;">Edit Student: <span id="editStudentId"></span></h3>
+        <form id="editStudentForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;">
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Student Name</span><input type="text" name="student_name" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Parahs Completed</span><input type="number" name="revision" placeholder="e.g. 2 Paras" value="0"></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Attendance (%)</span><input type="number" name="attendance" placeholder="e.g. 96" min="0" max="100" value="0"></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Lesson</span><input type="text" name="lesson" placeholder="e.g. Surah Al-Baqarah" value=""></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Progress (%)</span><input type="number" name="progress" placeholder="e.g. 78" min="0" max="100" value="0"></label>
+          <div style="display:flex;align-items:center;gap:12px;grid-column:1 / -1;">
+            <button type="submit" class="btn btn-primary" style="padding:0 18px;">Update Student</button>
+            <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="padding:0 18px;">Cancel</button>
+            <span id="studentEditStatus" class="form-status" style="margin:0;">&nbsp;</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="admin-toolbar-v2">
+      <div class="toolbar-left">
+        <button class="filter-btn active" data-filter="All">All</button>
+        <button class="filter-btn" data-filter="Pending">Pending</button>
+        <button class="filter-btn" data-filter="Approved">Approved</button>
+        <button class="filter-btn" data-filter="Rejected">Rejected</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="search-wrap">
+          <span class="search-icon">S</span>
+          <input type="text" id="searchInput" placeholder="Search by name, phone...">
+        </div>
+        <button class="btn btn-secondary" id="refreshBtn" style="font-size:0.82rem;">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap-v2">
+      <div style="overflow-x:auto;">
+        <table class="admin-table-v2">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Roll No</th>
+              <th>Student Name</th>
+              <th>Parent / Guardian</th>
+              <th>Phone</th>
+              <th>Course</th>
+              <th>Date of Birth</th>
+              <th>Previous Education</th>
+              <th>Status</th>
+              <th>Applied On</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr class="no-data-row"><td colspan="11">Loading applications...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="form-status" id="tableStatus" style="margin-top:14px;"></p>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    const API_BASE = "http://127.0.0.1:8000";
+    if (localStorage.getItem("du-theme") === "dark") root.classList.add("dark-mode");
+
+    const gate = document.getElementById("adminGate");
+    const adminPage = document.getElementById("adminPage");
+    const gateForm = document.getElementById("gateForm");
+    const gateStatus = document.getElementById("gateStatus");
+    const tableBody = document.getElementById("tableBody");
+    const tableStatus = document.getElementById("tableStatus");
+    const searchInput = document.getElementById("searchInput");
+    let currentFilter = "All", searchTimeout = null;
+
+    function showDashboard() {
+      gate.classList.add("hidden");
+      adminPage.classList.add("active");
+      loadAdmissions();
+      loadStudents(); // Auto-load students when dashboard opens
+    }
+
+    if (sessionStorage.getItem("admin-auth") === "yes") showDashboard();
+
+    gateForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      gateStatus.textContent = "Verifying...";
+      gateStatus.className = "form-status";
+      const data = Object.fromEntries(new FormData(gateForm).entries());
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data), credentials: "include" });
+        const result = await res.json();
+        if (result.ok) { sessionStorage.setItem("admin-auth", "yes"); showDashboard(); }
+        else { gateStatus.textContent = result.message; gateStatus.className = "form-status error"; }
+      } catch { gateStatus.textContent = "Connection error. Is the server running at localhost:8000?"; gateStatus.className = "form-status error"; }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      try {
+        await fetch(`${API_BASE}/api/admin/logout`, { method: "POST", credentials: "include" });
+      } catch {}
+      sessionStorage.removeItem("admin-auth");
+      adminPage.classList.remove("active");
+      gate.classList.remove("hidden");
+    });
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        loadAdmissions();
+      });
+    });
+
+    searchInput.addEventListener("input", () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadAdmissions, 320); });
+    document.getElementById("refreshBtn").addEventListener("click", loadAdmissions);
+    const studentAddForm = document.getElementById("studentAddForm");
+    const studentAddStatus = document.getElementById("studentAddStatus");
+
+    studentAddForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      studentAddStatus.textContent = "Saving student...";
+      studentAddStatus.className = "form-status";
+      const payload = Object.fromEntries(new FormData(studentAddForm).entries());
+      payload.revision = payload.revision || "0 Paras";
+      payload.progress = Number(payload.progress || 0);
+      payload.attendance = Number(payload.attendance || 0);
+      try {
+        const res = await fetch(`${API_BASE}/api/students`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), credentials: "include" });
+        const data = await res.json();
+        studentAddStatus.textContent = data.message;
+        studentAddStatus.className = `form-status ${data.ok ? "success" : "error"}`;
+        if (data.ok) studentAddForm.reset();
+      } catch (err) {
+        studentAddStatus.textContent = `Failed to add student. ${err?.message || "Is the server running?"}`;
+        studentAddStatus.className = "form-status error";
+      }
+    });
+
+    // Student Management
+    const studentsTableContainer = document.getElementById("studentsTableContainer");
+    const studentsTableBody = document.getElementById("studentsTableBody");
+    const studentEditForm = document.getElementById("studentEditForm");
+    const editStudentForm = document.getElementById("editStudentForm");
+    const studentEditStatus = document.getElementById("studentEditStatus");
+    const editStudentId = document.getElementById("editStudentId");
+    let currentEditingStudent = null;
+
+    document.getElementById("refreshStudentsBtn").addEventListener("click", loadStudents);
+    document.getElementById("cancelEditBtn").addEventListener("click", () => {
+      studentEditForm.style.display = "none";
+      currentEditingStudent = null;
+    });
+
+    editStudentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentEditingStudent) return;
+      studentEditStatus.textContent = "Updating student...";
+      studentEditStatus.className = "form-status";
+      const payload = Object.fromEntries(new FormData(editStudentForm).entries());
+      payload.revision = payload.revision || "0 Paras";
+      payload.progress = Number(payload.progress || 0);
+      payload.attendance = Number(payload.attendance || 0);
+      try {
+        const res = await fetch(`${API_BASE}/api/students/${currentEditingStudent}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), credentials: "include" });
+        const data = await res.json();
+        studentEditStatus.textContent = data.message;
+        studentEditStatus.className = `form-status ${data.ok ? "success" : "error"}`;
+        if (data.ok) {
+          studentEditForm.style.display = "none";
+          currentEditingStudent = null;
+          loadStudents(); // Reload the table
+        }
+      } catch (err) {
+        studentEditStatus.textContent = `Failed to update student. ${err?.message || "Is the server running?"}`;
+        studentEditStatus.className = "form-status error";
+      }
+    });
+
+    async function loadStudents() {
+      try {
+        const res = await fetch(`${API_BASE}/api/students`, { credentials: "include" });
+        if (res.status === 401) {
+          alert("Admin session expired. Please login again.");
+          return;
+        }
+        const data = await res.json();
+        if (data.ok && data.students) {
+          studentsTableContainer.style.display = "block";
+          if (!data.students.length) {
+            studentsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="8">No students found.</td></tr>`;
+            return;
+          }
+          studentsTableBody.innerHTML = data.students.map((student, i) => `
+            <tr>
+              <td style="color:var(--muted);font-size:0.8rem;">${i + 1}</td>
+              <td><strong>${esc(student.student_id)}</strong></td>
+              <td>${esc(student.student_name)}</td>
+              <td>${esc(student.revision || "0 Paras")}</td>
+              <td>${student.attendance}%</td>
+              <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(student.lesson || "")}">${esc(student.lesson || "-")}</td>
+              <td>${student.progress}%</td>
+              <td><div class="action-row">
+                <button class="act-btn approve" onclick="editStudent('${student.student_id}', ${JSON.stringify(student).replace(/"/g, '&quot;')})">Edit</button>
+                <button class="act-btn delete" onclick="deleteStudent('${student.student_id}', '${esc(student.student_name)}')" title="Delete">Delete</button>
+              </div></td>
+            </tr>`).join("");
+        } else {
+          studentsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="8">Failed to load students.</td></tr>`;
+        }
+      } catch (err) {
+        studentsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="8">Error loading students: ${err.message}</td></tr>`;
+      }
+    }
+
+    function editStudent(studentId, student) {
+      currentEditingStudent = studentId;
+      editStudentId.textContent = studentId;
+      editStudentForm.student_name.value = student.student_name || "";
+      editStudentForm.revision.value = student.revision ? student.revision.replace(" Paras", "") : "0";
+      editStudentForm.attendance.value = student.attendance || 0;
+      editStudentForm.lesson.value = student.lesson || "";
+      editStudentForm.progress.value = student.progress || 0;
+      studentEditForm.style.display = "block";
+      studentEditForm.scrollIntoView({ behavior: "smooth" });
+    }
+
+    async function deleteStudent(studentId, studentName) {
+      if (!confirm(`Are you sure you want to delete the student record for "${studentName}" (${studentId})? This action cannot be undone.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/students/${studentId}`, { method: "DELETE", credentials: "include" });
+        const data = await res.json();
+        if (data.ok) {
+          loadStudents(); // Reload the table
+        } else {
+          alert(`Failed to delete student: ${data.message}`);
+        }
+      } catch (err) {
+        alert(`Error deleting student: ${err.message}`);
+      }
+    }
+
+    async function loadAdmissions() {
+      tableStatus.textContent = "";
+      const search = searchInput.value.trim();
+      let url = `${API_BASE}/api/admissions?status=${encodeURIComponent(currentFilter)}${search ? `&search=${encodeURIComponent(search)}` : ""}`;
+      try {
+        const res = await fetch(url, { credentials: "include" });
+        if (res.status === 401) {
+          sessionStorage.removeItem("admin-auth");
+          adminPage.classList.remove("active");
+          gate.classList.remove("hidden");
+          gateStatus.textContent = "Please login as admin to view applications.";
+          gateStatus.className = "form-status error";
+          return;
+        }
+        const data = await res.json();
+        document.getElementById("statTotal").textContent = data.stats.total;
+        document.getElementById("statPending").textContent = data.stats.pending;
+        document.getElementById("statApproved").textContent = data.stats.approved;
+        document.getElementById("statRejected").textContent = data.stats.rejected;
+        if (!data.items.length) { tableBody.innerHTML = `<tr class="no-data-row"><td colspan="11">No applications match your filter.</td></tr>`; return; }
+        tableBody.innerHTML = data.items.map((item, i) => `
+          <tr id="row-${item.id}">
+            <td style="color:var(--muted);font-size:0.8rem;">${i + 1}</td>
+            <td>${item.roll_no ? `<span class="roll-chip">${esc(item.roll_no)}</span>` : `<span style="color:var(--muted);font-size:0.8rem;font-style:italic;">Unassigned</span>`}</td>
+            <td><strong>${esc(item.student_name)}</strong></td>
+            <td>${esc(item.parent_name)}</td>
+            <td style="font-size:0.88rem;">${esc(item.phone)}</td>
+            <td style="font-size:0.84rem;">${esc(item.course)}</td>
+            <td style="font-size:0.82rem;color:var(--muted);">${esc(item.date_of_birth || "-")}</td>
+            <td style="font-size:0.82rem;color:var(--muted);max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(item.previous_education||"")}">${esc(item.previous_education || "-")}</td>
+            <td><span class="status-badge ${esc(item.status)}">${esc(item.status)}</span></td>
+            <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">${fmtDate(item.created_at)}</td>
+            <td><div class="action-row">
+              ${item.status !== "Approved" ? `<button class="act-btn approve" onclick="updateStatus(${item.id},'Approved')">Approve</button>` : ""}
+              ${item.status !== "Rejected" ? `<button class="act-btn reject" onclick="updateStatus(${item.id},'Rejected')">Reject</button>` : ""}
+              ${item.status !== "Pending" ? `<button class="act-btn set-pending" onclick="updateStatus(${item.id},'Pending')">Pending</button>` : ""}
+              <button class="act-btn delete" onclick="delAdmission(${item.id})" title="Delete">Delete</button>
+            </div></td>
+          </tr>`).join("");
+      } catch {
+        tableBody.innerHTML = `<tr class="no-data-row"><td colspan="11">Failed to load data. Is the server running?</td></tr>`;
+      }
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        const res = await fetch(`${API_BASE}/api/admissions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }), credentials: "include" });
+        const r = await res.json();
+        tableStatus.textContent = r.message + (r.admission?.roll_no ? ` Roll No assigned: ${r.admission.roll_no}` : "");
+        tableStatus.className = `form-status ${r.ok ? "success" : "error"}`;
+        if (r.ok) loadAdmissions();
+      } catch { tableStatus.textContent = "Action failed."; tableStatus.className = "form-status error"; }
+    }
+
+    async function delAdmission(id) {
+      if (!confirm("Permanently delete this application? This cannot be undone.")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admissions/${id}`, { method: "DELETE", credentials: "include" });
+        const r = await res.json();
+        tableStatus.textContent = r.message;
+        tableStatus.className = `form-status ${r.ok ? "success" : "error"}`;
+        if (r.ok) loadAdmissions();
+      } catch { tableStatus.textContent = "Delete failed."; tableStatus.className = "form-status error"; }
+    }
+
+    function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function fmtDate(dt) {
+      if (!dt) return "-";
+      try { return new Date(dt).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" }); } catch { return dt; }
+    }
+  </script>
+</body>
+</html>

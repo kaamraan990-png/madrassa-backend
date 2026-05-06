@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Result Portal | Dar-ul-Uloom As-Sufat-Ul Islamia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="portal-page-body">
+  <div class="page-shell portal-page-shell">
+    <header class="portal-page-header">
+      <a class="back-link" href="index.html">Home</a>
+      <div>
+        <p class="section-tag">Result Portal</p>
+        <h1 class="portal-page-title">Student Result Portal</h1>
+        <p class="portal-page-copy">Enter the roll number and captcha to open the student result from the backend.</p>
+      </div>
+    </header>
+
+    <main class="portal-page-main">
+      <section class="portal-section result-section">
+        <article class="admission-card portal-form-card">
+          <div class="portal-hero-line">
+            <div>
+              <p class="mini-tag">Exam Result</p>
+              <h4>Open Student Result</h4>
+            </div>
+            <span class="portal-status">Result Search</span>
+          </div>
+          <form class="result-form" id="resultForm">
+            <label>
+              <span>Roll Number</span>
+              <input type="text" name="roll_no" placeholder="Enter roll number">
+            </label>
+            <div class="captcha-wrap result-captcha-wrap">
+              <div class="captcha-box">
+                <span class="captcha-label">Security Code</span>
+                <strong id="captchaCode">8472</strong>
+              </div>
+              <button class="btn btn-secondary captcha-refresh" id="refreshCaptcha" type="button">Refresh</button>
+            </div>
+            <label class="captcha-input">
+              <span>Enter Captcha</span>
+              <input type="text" name="captcha" placeholder="Type the code above">
+            </label>
+            <button type="submit" class="btn btn-primary">Show Result</button>
+          </form>
+          <p class="form-status" id="resultStatus"></p>
+        </article>
+
+        <article class="portal-card result-card" id="resultCard">
+          <p class="mini-tag">Result Summary</p>
+          <h4 id="resultStudentName">No result loaded yet</h4>
+          <div class="result-grid">
+            <div>
+              <small>Roll No</small>
+              <strong id="resultRoll">-</strong>
+            </div>
+            <div>
+              <small>Exam</small>
+              <strong id="resultExam">-</strong>
+            </div>
+            <div>
+              <small>Course</small>
+              <strong id="resultCourse">-</strong>
+            </div>
+            <div>
+              <small>Marks</small>
+              <strong id="resultMarks">-</strong>
+            </div>
+            <div>
+              <small>Grade</small>
+              <strong id="resultGrade">-</strong>
+            </div>
+            <div>
+              <small>Status</small>
+              <strong id="resultStatusValue">-</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const API_BASE = "http://127.0.0.1:8000";
+    const savedTheme = localStorage.getItem("du-theme");
+    const resultForm = document.getElementById("resultForm");
+    const resultStatus = document.getElementById("resultStatus");
+    const captchaCode = document.getElementById("captchaCode");
+    const refreshCaptcha = document.getElementById("refreshCaptcha");
+
+    function generateCaptcha() {
+      return Math.floor(1000 + Math.random() * 9000).toString();
+    }
+
+    if (savedTheme === "dark") {
+      root.classList.add("dark-mode");
+    }
+
+    captchaCode.textContent = generateCaptcha();
+
+    refreshCaptcha.addEventListener("click", () => {
+      captchaCode.textContent = generateCaptcha();
+    });
+
+    resultForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(resultForm);
+      const payload = Object.fromEntries(formData.entries());
+      payload.expected_captcha = captchaCode.textContent;
+
+      const response = await fetch(`${API_BASE}/api/result`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      resultStatus.textContent = result.message || "Result loaded successfully.";
+      resultStatus.className = `form-status ${result.ok ? "success" : "error"}`;
+
+      if (result.ok) {
+        document.getElementById("resultStudentName").textContent = result.result.student_name;
+        document.getElementById("resultRoll").textContent = result.result.roll_no;
+        document.getElementById("resultExam").textContent = result.result.exam_name;
+        document.getElementById("resultCourse").textContent = result.result.course;
+        document.getElementById("resultMarks").textContent = `${result.result.obtained_marks} / ${result.result.total_marks}`;
+        document.getElementById("resultGrade").textContent = result.result.grade;
+        document.getElementById("resultStatusValue").textContent = result.result.status;
+      }
+    });
+  </script>
+</body>
+</html>

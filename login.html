@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login | Darul Uloom Asufatul Islamia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="portal-page-body">
+  <div class="page-shell portal-page-shell">
+    <header class="portal-page-header">
+      <a class="back-link" href="index.html">Home</a>
+      <div>
+        <p class="section-tag">Student Login</p>
+        <h1 class="portal-page-title">Student Dashboard Portal</h1>
+        <p class="portal-page-copy">Enter your roll number to view monthly parah completion, performance, attendance, and lesson status.</p>
+      </div>
+    </header>
+
+    <main class="portal-page-main">
+      <section class="portal-section portal-login">
+        <article class="portal-card portal-experience">
+          <div class="portal-top">
+            <div>
+              <p class="mini-tag">Student Access</p>
+              <h4>Login to Dashboard</h4>
+            </div>
+            <span class="portal-status">Live Portal UI</span>
+          </div>
+          <form class="login-form" id="loginForm">
+            <label>
+              <span>Roll Number</span>
+              <input type="text" name="roll_no" placeholder="Enter roll number">
+            </label>
+            <button type="submit" class="btn btn-primary">Login Now</button>
+          </form>
+          <p class="form-status" id="loginStatus"></p>
+          <div class="dashboard-preview">
+            <div class="dash-head">
+              <div>
+                <small>Monthly Overview</small>
+                <strong id="studentName">Student Progress Overview</strong>
+              </div>
+              <span class="live-badge">Active</span>
+            </div>
+            <div class="portal-grid">
+              <div>
+                <small>Total Parahs Completed</small>
+                <strong id="studentParah">0</strong>
+              </div>
+              <div>
+                <small>Attendance</small>
+                <strong id="studentAttendance">0%</strong>
+              </div>
+              <div>
+                <small>Student Name</small>
+                <strong id="studentNameLabel">-</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    const API_BASE = "http://127.0.0.1:8000";
+    const savedTheme = localStorage.getItem("du-theme");
+    const loginForm = document.getElementById("loginForm");
+    const loginStatus = document.getElementById("loginStatus");
+
+    if (savedTheme === "dark") {
+      root.classList.add("dark-mode");
+    }
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(loginForm);
+      const payload = Object.fromEntries(formData.entries());
+
+      const response = await fetch(`${API_BASE}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      loginStatus.textContent = result.message || "Login successful.";
+      loginStatus.className = `form-status ${result.ok ? "success" : "error"}`;
+
+      if (result.ok) {
+        document.getElementById("studentName").textContent = "Monthly Overview";
+        document.getElementById("studentNameLabel").textContent = result.student.student_name;
+        document.getElementById("studentParah").textContent = result.student.revision || "0 Paras";
+        document.getElementById("studentAttendance").textContent = `${result.student.attendance}%`;
+      }
+    });
+  </script>
+</body>
+</html>
