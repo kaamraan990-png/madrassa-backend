@@ -332,6 +332,15 @@ class MadrassaHandler(BaseHTTPRequestHandler):
             self._send_json({"ok": True, "students": [dict(s) for s in students]})
             return
 
+        if path == "/api/results":
+            if not self._require_admin():
+                return
+            conn = get_connection()
+            results = conn.execute("SELECT * FROM results ORDER BY id DESC").fetchall()
+            conn.close()
+            self._send_json({"ok": True, "results": [dict(r) for r in results]})
+            return
+
         self.send_error(404, "Not Found")
 
     def do_POST(self):
@@ -478,12 +487,48 @@ class MadrassaHandler(BaseHTTPRequestHandler):
                 self._send_json({"ok": False, "message": "Captcha does not match. Please refresh and try again."}, 400)
                 return
             conn = get_connection()
-            result = conn.execute("SELECT * FROM results WHERE roll_no = ?", (roll_no,)).fetchone()
+            result = conn.execute("SELECT * FROM results WHERE roll_no = ? ORDER BY id DESC LIMIT 1", (roll_no,)).fetchone()
             conn.close()
             if not result:
                 self._send_json({"ok": False, "message": "No result found for this roll number."}, 404)
                 return
             self._send_json({"ok": True, "result": dict(result)})
+            return
+
+        if path == "/api/results":
+            if not self._require_admin():
+                return
+            payload = read_json(self)
+            roll_no = payload.get("roll_no", "").strip()
+            student_name = payload.get("student_name", "").strip()
+            exam_name = payload.get("exam_name", "").strip()
+            course = payload.get("course", "").strip()
+            total_marks = payload.get("total_marks", "").strip()
+            obtained_marks = payload.get("obtained_marks", "").strip()
+            grade = payload.get("grade", "").strip()
+            status = payload.get("status", "Published").strip()
+            if not all([roll_no, student_name, exam_name, course, total_marks, obtained_marks, grade]):
+                self._send_json({"ok": False, "message": "All fields are required."}, 400)
+                return
+            try:
+                total_marks = int(total_marks)
+                obtained_marks = int(obtained_marks)
+            except ValueError:
+                self._send_json({"ok": False, "message": "Marks must be numbers."}, 400)
+                return
+            conn = get_connection()
+            try:
+                conn.execute("""
+                    INSERT INTO results (roll_no, student_name, exam_name, course, total_marks, obtained_marks, grade, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (roll_no, student_name, exam_name, course, total_marks, obtained_marks, grade, status))
+                conn.commit()
+            except Exception as exc:
+                conn.close()
+                self._send_json({"ok": False, "message": f"Unable to add result: {exc}"}, 400)
+                return
+            conn.close()
+            self._send_json({"ok": True, "message": "Result added successfully."})
             return
 
         self.send_error(404, "Not Found")
@@ -557,6 +602,20 @@ class MadrassaHandler(BaseHTTPRequestHandler):
                 return
             conn.close()
             self._send_json({"ok": True, "message": "Student deleted successfully."})
+            return
+        
+        if path.startswith("/api/results/"):
+            if not self._require_admin():
+                return
+            result_id = path.split("/")[-1]
+            if not result_id.isdigit():
+                self._send_json({"ok": False, "message": "Invalid ID."}, 400)
+                return
+            conn = get_connection()
+            conn.execute("DELETE FROM results WHERE id=?", (result_id,))
+            conn.commit()
+            conn.close()
+            self._send_json({"ok": True, "message": "Result deleted."})
             return
         
         self.send_error(404, "Not Found")

@@ -10,42 +10,45 @@
   <link rel="stylesheet" href="index.css">
   <style>
     .admin-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-    .gate-card{width:min(460px,100%);padding:44px 40px;border-radius:28px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));box-shadow:var(--shadow);text-align:center;}
-    .gate-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#143d55,#1b7f72);color:#fff;font-size:1.6rem;display:grid;place-items:center;margin:0 auto 22px;box-shadow:0 12px 30px rgba(20,61,85,0.28);}
-    .gate-card h2{margin:0 0 6px;font-family:"Cormorant Garamond",serif;font-size:2rem;}
+    .gate-card{width:min(460px,100%);padding:44px 40px;border-radius:24px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow-md);text-align:center;}
+    .gate-icon{width:72px;height:72px;border-radius:50%;background:var(--primary-deep);color:#fff;font-size:1.6rem;display:grid;place-items:center;margin:0 auto 22px;box-shadow:var(--shadow-md);}
+    .gate-card h2{margin:0 0 6px;font-family:"Cormorant Garamond",serif;font-size:2rem;color:var(--primary-deep);}
     .gate-card>p{margin:0 0 28px;color:var(--muted);font-size:0.92rem;line-height:1.7;}
     .gate-form{display:grid;gap:14px;text-align:left;}
     .gate-form label{display:grid;gap:7px;}
     .gate-form label span{font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary-deep);}
-    .gate-form input{min-height:52px;padding:0 16px;border:1px solid rgba(85,209,194,.16);border-radius:16px;font:inherit;color:var(--text);background:rgba(10,20,33,.9);outline:none;transition:border-color .2s,box-shadow .2s;}
+    .gate-form input{min-height:52px;padding:0 16px;border:1px solid var(--border);border-radius:12px;font:inherit;color:var(--text);background:var(--surface-strong);outline:none;transition:border-color .3s;}
+    .gate-form input:focus{border-color:var(--primary);}
     .admin-page{display:none;}
     .admin-page.active{display:block;}
     .admin-gate.hidden{display:none;}
     .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
-    .stat-tile{padding:22px 24px;border-radius:20px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,0.08);position:relative;overflow:hidden;}
+    .stat-tile{padding:22px 24px;border-radius:20px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);position:relative;overflow:hidden;transition:all 0.3s ease;}
+    .stat-tile:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
     .stat-tile::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;}
-    .stat-tile.all::before{background:linear-gradient(90deg,#143d55,#1b7f72);}
-    .stat-tile.pending::before{background:linear-gradient(90deg,#c6922f,#f0bc68);}
-    .stat-tile.approved::before{background:linear-gradient(90deg,#1b7f72,#55d1c2);}
-    .stat-tile.rejected::before{background:linear-gradient(90deg,#8b3030,#d45555);}
+    .stat-tile.all::before{background:var(--primary);}
+    .stat-tile.pending::before{background:#f0bc68;}
+    .stat-tile.approved::before{background:#55d1c2;}
+    .stat-tile.rejected::before{background:#d45555;}
     .stat-tile small{font-size:0.73rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
     .stat-tile strong{display:block;font-family:"Cormorant Garamond",serif;font-size:2.4rem;line-height:1;color:var(--text);}
-    .admin-toolbar-v2{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;padding:18px 22px;border-radius:20px;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface),var(--surface-tint));}
+    .admin-toolbar-v2{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px;padding:18px 22px;border-radius:20px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);}
     .toolbar-left{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .filter-btn{min-height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);font:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all .2s;}
-    .filter-btn:hover{background:rgba(27,127,114,.08);color:var(--text);}
+    .filter-btn:hover{background:rgba(15,61,46,.06);color:var(--text);}
     .filter-btn.active{background:var(--primary-deep);color:#fff;border-color:var(--primary-deep);}
     .search-wrap{position:relative;}
-    .search-wrap input{min-height:36px;padding:0 14px 0 36px;border-radius:999px;border:1px solid rgba(85,209,194,.16);font:inherit;font-size:0.88rem;color:var(--text);background:rgba(10,20,33,.9);outline:none;width:220px;transition:border-color .2s;}
+    .search-wrap input{min-height:36px;padding:0 14px 0 36px;border-radius:999px;border:1px solid var(--border);font:inherit;font-size:0.88rem;color:var(--text);background:var(--surface-strong);outline:none;width:220px;transition:border-color .2s;}
+    .search-wrap input:focus{border-color:var(--primary);}
     .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none;}
-    .table-wrap-v2{border-radius:22px;border:1px solid var(--border);overflow:hidden;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 24px rgba(20,61,85,0.08);}
+    .table-wrap-v2{border-radius:22px;border:1px solid var(--border);overflow:hidden;background:var(--surface);box-shadow:var(--shadow);}
     .admin-table-v2{width:100%;min-width:1000px;border-collapse:collapse;}
-    .admin-table-v2 thead tr{background:rgba(85,209,194,.07);}
+    .admin-table-v2 thead tr{background:var(--surface-tint);}
     .admin-table-v2 th{padding:14px 16px;text-align:left;font-size:0.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--primary-deep);border-bottom:1px solid var(--border);white-space:nowrap;}
     .admin-table-v2 td{padding:14px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
     .admin-table-v2 tbody tr:last-child td{border-bottom:0;}
     .admin-table-v2 tbody tr{transition:background .15s;}
-    .admin-table-v2 tbody tr:hover{background:rgba(27,127,114,.04);}
+    .admin-table-v2 tbody tr:hover{background:var(--surface-tint);}
     .status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:0.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
     .status-badge::before{content:"";width:6px;height:6px;border-radius:50%;flex-shrink:0;}
     .status-badge.Pending{background:rgba(240,188,104,.15);color:#f0bc68;}
@@ -65,7 +68,7 @@
     .act-btn.delete:hover{background:#555;color:#fff;}
     .roll-chip{font-family:"Cormorant Garamond",serif;font-size:1rem;font-weight:700;color:#f0bc68;background:rgba(240,188,104,.12);padding:2px 10px;border-radius:8px;}
     .admin-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px 0 22px;}
-    .admin-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#143d55,#1b7f72);color:#fff;font-size:1rem;font-weight:800;display:grid;place-items:center;flex-shrink:0;}
+    .admin-avatar{width:44px;height:44px;border-radius:50%;background:var(--primary-deep);color:#fff;font-size:1rem;font-weight:800;display:grid;place-items:center;flex-shrink:0;}
     .no-data-row td{text-align:center;padding:52px 24px;color:var(--muted);font-style:italic;}
     @media(max-width:960px){.admin-stats{grid-template-columns:1fr 1fr;}}
     @media(max-width:640px){.admin-stats{grid-template-columns:1fr 1fr;gap:10px;}.admin-toolbar-v2{flex-direction:column;align-items:flex-start;}.search-wrap input{width:100%;}}
@@ -197,6 +200,62 @@
       </div>
     </div>
 
+    <!-- Results Management -->
+    <div style="margin-bottom:24px;padding:24px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,.08);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+        <div>
+          <p class="section-tag" style="margin-bottom:8px;">Results Management</p>
+          <h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;">Add & Manage Student Results</h2>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:0.92rem;line-height:1.6;">Add exam results that students can view in the result portal.</p>
+        </div>
+        <button class="btn btn-primary" id="addResultBtn" style="font-size:0.82rem;">Add New Result</button>
+      </div>
+
+      <!-- Add Result Form -->
+      <div id="addResultForm" style="display:none;margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface);">
+        <h3 style="margin:0 0 16px;font-family:'Cormorant Garamond',serif;">Add Student Result</h3>
+        <form id="resultForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;">
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Roll Number</span><input type="text" name="roll_no" placeholder="DUA101" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Student Name</span><input type="text" name="student_name" placeholder="Enter student name" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Exam Name</span><input type="text" name="exam_name" placeholder="e.g. Mid-term Exam" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Course</span><input type="text" name="course" placeholder="e.g. Hifz-ul-Quran" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Total Marks</span><input type="number" name="total_marks" placeholder="100" min="1" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Obtained Marks</span><input type="number" name="obtained_marks" placeholder="85" min="0" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Grade</span><input type="text" name="grade" placeholder="A+" required></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Status</span><select name="status" required><option value="Pass">Pass</option><option value="Fail">Fail</option><option value="Distinction">Distinction</option></select></label>
+          <div style="display:flex;align-items:center;gap:12px;grid-column:1 / -1;">
+            <button type="submit" class="btn btn-primary" style="padding:0 18px;">Add Result</button>
+            <button type="button" class="btn btn-secondary" id="cancelAddResultBtn" style="padding:0 18px;">Cancel</button>
+            <span id="addResultStatus" class="form-status" style="margin:0;">&nbsp;</span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Results Table -->
+      <div id="resultsTableContainer">
+        <div style="overflow-x:auto;margin-top:16px;">
+          <table class="admin-table-v2" id="resultsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Roll Number</th>
+                <th>Student Name</th>
+                <th>Exam Name</th>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Grade</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+              <tr class="no-data-row"><td colspan="9">Loading results...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Toolbar -->
     <div class="admin-toolbar-v2">
       <div class="toolbar-left">
@@ -275,7 +334,7 @@
         const result = await res.json();
         if (result.ok) { sessionStorage.setItem("admin-auth", "yes"); showDashboard(); }
         else { gateStatus.textContent = result.message; gateStatus.className = "form-status error"; }
-      } catch { gateStatus.textContent = "Connection error. Is the server running at const API_BASE = window.location.origin;"; gateStatus.className = "form-status error"; }
+      } catch { gateStatus.textContent = alert("Connection error. Is the server running at " + API_BASE); gateStatus.className = "form-status error"; }
     });
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
@@ -423,6 +482,109 @@
         }
       } catch (err) {
         alert(`Error deleting student: ${err.message}`);
+      }
+    }
+
+    // Results Management
+    const addResultBtn = document.getElementById("addResultBtn");
+    const addResultForm = document.getElementById("addResultForm");
+    const resultForm = document.getElementById("resultForm");
+    const cancelAddResultBtn = document.getElementById("cancelAddResultBtn");
+    const addResultStatus = document.getElementById("addResultStatus");
+    const resultsTableContainer = document.getElementById("resultsTableContainer");
+    const resultsTableBody = document.getElementById("resultsTableBody");
+
+    addResultBtn.addEventListener("click", () => {
+      addResultForm.style.display = "block";
+      addResultForm.scrollIntoView({ behavior: "smooth" });
+    });
+
+    cancelAddResultBtn.addEventListener("click", () => {
+      addResultForm.style.display = "none";
+      resultForm.reset();
+      addResultStatus.textContent = "";
+      addResultStatus.className = "form-status";
+    });
+
+    resultForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      addResultStatus.textContent = "Adding result...";
+      addResultStatus.className = "form-status";
+      const payload = Object.fromEntries(new FormData(resultForm).entries());
+      payload.total_marks = Number(payload.total_marks);
+      payload.obtained_marks = Number(payload.obtained_marks);
+      try {
+        const res = await fetch(`${API_BASE}/api/results`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), credentials: "include" });
+        const data = await res.json();
+        addResultStatus.textContent = data.message;
+        addResultStatus.className = `form-status ${data.ok ? "success" : "error"}`;
+        if (data.ok) {
+          resultForm.reset();
+          addResultForm.style.display = "none";
+          loadResults(); // Reload the table
+        }
+      } catch (err) {
+        addResultStatus.textContent = `Failed to add result. ${err?.message || "Is the server running?"}`;
+        addResultStatus.className = "form-status error";
+      }
+    });
+
+    async function loadResults() {
+      try {
+        const res = await fetch(`${API_BASE}/api/results`, { credentials: "include" });
+        if (res.status === 401) {
+          alert("Admin session expired. Please login again.");
+          return;
+        }
+        const data = await res.json();
+        if (data.ok && data.results) {
+          resultsTableContainer.style.display = "block";
+          if (!data.results.length) {
+            resultsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="9">No results found.</td></tr>`;
+            return;
+          }
+          resultsTableBody.innerHTML = data.results.map((result, i) => `
+            <tr>
+              <td style="color:var(--muted);font-size:0.8rem;">${i + 1}</td>
+              <td><strong>${esc(result.roll_no)}</strong></td>
+              <td>${esc(result.student_name)}</td>
+              <td>${esc(result.exam_name)}</td>
+              <td>${esc(result.course)}</td>
+              <td>${result.obtained_marks}/${result.total_marks}</td>
+              <td><span class="status-badge ${result.grade.toLowerCase().includes('a') ? 'Approved' : result.grade.toLowerCase().includes('f') ? 'Rejected' : 'Pending'}">${esc(result.grade)}</span></td>
+              <td><span class="status-badge ${result.status}">${esc(result.status)}</span></td>
+              <td><div class="action-row">
+                <button class="act-btn approve" onclick="editResult(${result.id}, ${JSON.stringify(result).replace(/"/g, '&quot;')})">Edit</button>
+                <button class="act-btn delete" onclick="deleteResult(${result.id}, '${esc(result.roll_no)}', '${esc(result.student_name)}')" title="Delete">Delete</button>
+              </div></td>
+            </tr>`).join("");
+        } else {
+          resultsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="9">Failed to load results.</td></tr>`;
+        }
+      } catch (err) {
+        resultsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="9">Error loading results: ${err.message}</td></tr>`;
+      }
+    }
+
+    function editResult(resultId, result) {
+      // For now, just show an alert. You can implement full edit functionality later
+      alert(`Edit functionality for result ID ${resultId} will be implemented soon.`);
+    }
+
+    async function deleteResult(resultId, rollNo, studentName) {
+      if (!confirm(`Are you sure you want to delete the result for "${studentName}" (${rollNo})? This action cannot be undone.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/results/${resultId}`, { method: "DELETE", credentials: "include" });
+        const data = await res.json();
+        if (data.ok) {
+          loadResults(); // Reload the table
+        } else {
+          alert(`Failed to delete result: ${data.message}`);
+        }
+      } catch (err) {
+        alert(`Error deleting result: ${err.message}`);
       }
     }
 

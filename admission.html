@@ -107,7 +107,7 @@
         });
         result = await response.json();
       } catch (err) {
-        result = { ok: false, message: "Connection error. Make sure the server is running at  API_BASE = window.location.origin." };
+        result = { ok: false, message: alert("Connection error. Is the server running at " + API_BASE) };
       }
       admissionStatus.textContent = result.message;
       admissionStatus.className = `form-status ${result.ok ? "success" : "error"}`;
