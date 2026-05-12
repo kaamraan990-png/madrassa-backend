@@ -32,10 +32,19 @@ def init_db():
             student_name TEXT NOT NULL,
             parent_name TEXT NOT NULL,
             phone TEXT NOT NULL,
+            email TEXT,
             course TEXT NOT NULL,
             date_of_birth TEXT,
+            age INTEGER,
             address TEXT,
             previous_education TEXT,
+            aadhar_document TEXT,
+            photo_document TEXT,
+            signature_document TEXT,
+            payment_method TEXT,
+            payment_amount REAL,
+            payment_reference TEXT,
+            payment_status TEXT,
             captcha TEXT,
             status TEXT DEFAULT 'Pending',
             roll_no TEXT,
@@ -44,9 +53,17 @@ def init_db():
     """)
 
     for col, col_def in [
-        ("date_of_birth", "TEXT"),
+        ("email", "TEXT"),
+        ("age", "INTEGER"),
         ("address", "TEXT"),
         ("previous_education", "TEXT"),
+        ("aadhar_document", "TEXT"),
+        ("photo_document", "TEXT"),
+        ("signature_document", "TEXT"),
+        ("payment_method", "TEXT"),
+        ("payment_amount", "REAL"),
+        ("payment_reference", "TEXT"),
+        ("payment_status", "TEXT"),
         ("status", "TEXT DEFAULT 'Pending'"),
         ("roll_no", "TEXT"),
     ]:
@@ -288,9 +305,9 @@ class MadrassaHandler(BaseHTTPRequestHandler):
                 conditions.append("status = ?")
                 params.append(status_filter)
             if search:
-                conditions.append("(student_name LIKE ? OR parent_name LIKE ? OR phone LIKE ? OR roll_no LIKE ?)")
+                conditions.append("(student_name LIKE ? OR parent_name LIKE ? OR phone LIKE ? OR email LIKE ? OR roll_no LIKE ? OR address LIKE ?)")
                 s = f"%{search}%"
-                params.extend([s, s, s, s])
+                params.extend([s, s, s, s, s, s])
             if conditions:
                 query += " WHERE " + " AND ".join(conditions)
             query += " ORDER BY created_at DESC, id DESC"
@@ -374,13 +391,18 @@ class MadrassaHandler(BaseHTTPRequestHandler):
             conn = get_connection()
             conn.execute("""
                 INSERT INTO admissions
-                  (student_name, parent_name, phone, course, date_of_birth, address, previous_education, captcha, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
+                  (student_name, parent_name, phone, email, course, date_of_birth, age, address, previous_education, aadhar_document, photo_document, signature_document, payment_method, payment_amount, payment_reference, payment_status, captcha, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
             """, (
                 payload["student_name"].strip(), payload["parent_name"].strip(),
-                payload["phone"].strip(), payload["course"].strip(),
-                payload.get("date_of_birth", "").strip(), payload.get("address", "").strip(),
-                payload.get("previous_education", "").strip(), payload.get("captcha", "").strip(),
+                payload["phone"].strip(), payload.get("email", "").strip(),
+                payload["course"].strip(), payload.get("date_of_birth", "").strip(),
+                payload.get("age", 0), payload.get("address", "").strip(),
+                payload.get("previous_education", "").strip(), payload.get("aadhar_document", "").strip(),
+                payload.get("photo_document", "").strip(), payload.get("signature_document", "").strip(),
+                payload.get("payment_method", "").strip(), payload.get("payment_amount", 0.0),
+                payload.get("payment_reference", "").strip(), payload.get("payment_status", "Submitted"),
+                payload.get("captcha", "").strip(),
             ))
             conn.commit()
             conn.close()

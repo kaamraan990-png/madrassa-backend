@@ -330,16 +330,21 @@
               <th>Student Name</th>
               <th>Parent / Guardian</th>
               <th>Phone</th>
+              <th>Email</th>
               <th>Course</th>
+              <th>Age</th>
               <th>Date of Birth</th>
               <th>Previous Education</th>
+              <th>Address</th>
+              <th>Documents</th>
+              <th>Payment</th>
               <th>Status</th>
               <th>Applied On</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="tableBody">
-            <tr class="no-data-row"><td colspan="11">Loading applications...</td></tr>
+            <tr class="no-data-row"><td colspan="16">Loading applications...</td></tr>
           </tbody>
         </table>
       </div>
@@ -734,7 +739,7 @@
         document.getElementById("statPending").textContent = data.stats.pending;
         document.getElementById("statApproved").textContent = data.stats.approved;
         document.getElementById("statRejected").textContent = data.stats.rejected;
-        if (!data.items.length) { tableBody.innerHTML = `<tr class="no-data-row"><td colspan="11">No applications match your filter.</td></tr>`; return; }
+        if (!data.items.length) { tableBody.innerHTML = `<tr class="no-data-row"><td colspan="16">No applications match your filter.</td></tr>`; return; }
         tableBody.innerHTML = data.items.map((item, i) => `
           <tr id="row-${item.id}">
             <td style="color:var(--muted);font-size:0.8rem;">${i + 1}</td>
@@ -742,9 +747,23 @@
             <td><strong>${esc(item.student_name)}</strong></td>
             <td>${esc(item.parent_name)}</td>
             <td style="font-size:0.88rem;">${esc(item.phone)}</td>
+            <td style="font-size:0.84rem;">${esc(item.email || "-")}</td>
             <td style="font-size:0.84rem;">${esc(item.course)}</td>
+            <td style="font-size:0.82rem;color:var(--muted);">${esc(item.age ? item.age + " yrs" : "-")}</td>
             <td style="font-size:0.82rem;color:var(--muted);">${esc(item.date_of_birth || "-")}</td>
             <td style="font-size:0.82rem;color:var(--muted);max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(item.previous_education||"")}">${esc(item.previous_education || "-")}</td>
+            <td style="font-size:0.82rem;color:var(--muted);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(item.address||"")}">${esc(item.address || "-")}</td>
+            <td style="font-size:0.78rem;">
+              ${item.aadhar_document ? `<a href="${esc(item.aadhar_document)}" target="_blank" style="color:#1db8b0;text-decoration:none;">Aadhaar</a>` : '<span style="color:var(--muted);">—</span>'} |
+              ${item.photo_document ? `<a href="${esc(item.photo_document)}" target="_blank" style="color:#1db8b0;text-decoration:none;">Photo</a>` : '<span style="color:var(--muted);">—</span>'} |
+              ${item.signature_document ? `<a href="${esc(item.signature_document)}" target="_blank" style="color:#1db8b0;text-decoration:none;">Signature</a>` : '<span style="color:var(--muted);">—</span>'}
+            </td>
+            <td style="font-size:0.78rem;color:var(--muted);">
+              ${item.payment_method ? `${esc(item.payment_method)}<br>` : ""}
+              ${item.payment_amount ? `₹${esc(item.payment_amount)}<br>` : ""}
+              ${item.payment_reference ? `${esc(item.payment_reference)}` : ""}
+              ${!item.payment_method && !item.payment_amount && !item.payment_reference ? "—" : ""}
+            </td>
             <td><span class="status-badge ${esc(item.status)}">${esc(item.status)}</span></td>
             <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap;">${fmtDate(item.created_at)}</td>
             <td><div class="action-row">
