@@ -256,6 +256,52 @@
       </div>
     </div>
 
+    <!-- Notification Management -->
+    <div style="margin-bottom:24px;padding:24px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(180deg,var(--surface),var(--surface-tint));box-shadow:0 4px 18px rgba(20,61,85,.08);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+        <div>
+          <p class="section-tag" style="margin-bottom:8px;">Notification Management</p>
+          <h2 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:1.5rem;">Publish Madrassa Notices</h2>
+          <p style="margin:8px 0 0;color:var(--muted);font-size:0.92rem;line-height:1.6;">Add notices with an optional PDF link so students and parents can download the announcement.</p>
+        </div>
+        <button class="btn btn-primary" id="addNotificationBtn" style="font-size:0.82rem;">Add Notification</button>
+      </div>
+
+      <div id="addNotificationForm" style="display:none;margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--surface);">
+        <h3 style="margin:0 0 16px;font-family:'Cormorant Garamond',serif;">New Notification</h3>
+        <form id="notificationForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;">
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Title</span><input type="text" name="title" placeholder="Notification title" required></label>
+          <label style="display:grid;gap:8px;grid-column:1 / -1;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">Message</span><textarea name="message" rows="4" placeholder="Enter the notice details" required style="min-height:120px;padding:14px;border:1px solid var(--border);border-radius:16px;font:inherit;color:var(--text);background:var(--surface-strong);"></textarea></label>
+          <label style="display:grid;gap:8px;"><span style="font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary-deep);">PDF Link</span><input type="url" name="pdf_url" placeholder="https://example.com/notice.pdf"></label>
+          <div style="display:flex;align-items:center;gap:12px;grid-column:1 / -1;">
+            <button type="submit" class="btn btn-primary" style="padding:0 18px;">Save Notification</button>
+            <button type="button" class="btn btn-secondary" id="cancelNotificationBtn" style="padding:0 18px;">Cancel</button>
+            <span id="notificationStatus" class="form-status" style="margin:0;">&nbsp;</span>
+          </div>
+        </form>
+      </div>
+
+      <div id="notificationsTableContainer">
+        <div style="overflow-x:auto;margin-top:16px;">
+          <table class="admin-table-v2" id="notificationsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Message</th>
+                <th>PDF</th>
+                <th>Published</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="notificationsTableBody">
+              <tr class="no-data-row"><td colspan="6">Loading notifications...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Toolbar -->
     <div class="admin-toolbar-v2">
       <div class="toolbar-left">
@@ -320,6 +366,8 @@
       adminPage.classList.add("active");
       loadAdmissions();
       loadStudents(); // Auto-load students when dashboard opens
+      loadResults(); // Auto-load results when dashboard opens
+      loadNotifications(); // Auto-load notifications when dashboard opens
     }
 
     if (sessionStorage.getItem("admin-auth") === "yes") showDashboard();
@@ -494,9 +542,50 @@
     const resultsTableContainer = document.getElementById("resultsTableContainer");
     const resultsTableBody = document.getElementById("resultsTableBody");
 
+    const addNotificationBtn = document.getElementById("addNotificationBtn");
+    const addNotificationForm = document.getElementById("addNotificationForm");
+    const notificationForm = document.getElementById("notificationForm");
+    const cancelNotificationBtn = document.getElementById("cancelNotificationBtn");
+    const notificationStatus = document.getElementById("notificationStatus");
+    const notificationsTableContainer = document.getElementById("notificationsTableContainer");
+    const notificationsTableBody = document.getElementById("notificationsTableBody");
+
     addResultBtn.addEventListener("click", () => {
       addResultForm.style.display = "block";
       addResultForm.scrollIntoView({ behavior: "smooth" });
+    });
+
+    addNotificationBtn.addEventListener("click", () => {
+      addNotificationForm.style.display = "block";
+      addNotificationForm.scrollIntoView({ behavior: "smooth" });
+    });
+
+    cancelNotificationBtn.addEventListener("click", () => {
+      addNotificationForm.style.display = "none";
+      notificationForm.reset();
+      notificationStatus.textContent = "";
+      notificationStatus.className = "form-status";
+    });
+
+    notificationForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      notificationStatus.textContent = "Saving notification...";
+      notificationStatus.className = "form-status";
+      const payload = Object.fromEntries(new FormData(notificationForm).entries());
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload), credentials: "include" });
+        const data = await res.json();
+        notificationStatus.textContent = data.message;
+        notificationStatus.className = `form-status ${data.ok ? "success" : "error"}`;
+        if (data.ok) {
+          notificationForm.reset();
+          addNotificationForm.style.display = "none";
+          loadNotifications();
+        }
+      } catch (err) {
+        notificationStatus.textContent = `Failed to save notification. ${err?.message || "Is the server running?"}`;
+        notificationStatus.className = "form-status error";
+      }
     });
 
     cancelAddResultBtn.addEventListener("click", () => {
@@ -585,6 +674,44 @@
         }
       } catch (err) {
         alert(`Error deleting result: ${err.message}`);
+      }
+    }
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications`, { credentials: "include" });
+        const data = await res.json();
+        notificationsTableContainer.style.display = "block";
+        if (data.ok && data.notifications && data.notifications.length) {
+          notificationsTableBody.innerHTML = data.notifications.map((item, i) => `
+            <tr>
+              <td style="color:var(--muted);font-size:0.8rem;">${i + 1}</td>
+              <td><strong>${esc(item.title)}</strong></td>
+              <td style="max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(item.message)}">${esc(item.message)}</td>
+              <td>${item.pdf_url ? `<a href="${esc(item.pdf_url)}" target="_blank" rel="noopener">View PDF</a>` : "—"}</td>
+              <td style="font-size:0.82rem;color:var(--muted);white-space:nowrap;">${fmtDate(item.created_at)}</td>
+              <td><div class="action-row"><button class="act-btn delete" onclick="deleteNotification(${item.id})" title="Delete">Delete</button></div></td>
+            </tr>`).join("");
+        } else {
+          notificationsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="6">No notifications found.</td></tr>`;
+        }
+      } catch (err) {
+        notificationsTableBody.innerHTML = `<tr class="no-data-row"><td colspan="6">Unable to load notifications: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function deleteNotification(notificationId) {
+      if (!confirm("Do you want to delete this notification?")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications/${notificationId}`, { method: "DELETE", credentials: "include" });
+        const data = await res.json();
+        if (data.ok) {
+          loadNotifications();
+        } else {
+          alert(`Failed to delete notification: ${data.message}`);
+        }
+      } catch (err) {
+        alert(`Error deleting notification: ${err.message}`);
       }
     }
 

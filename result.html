@@ -92,14 +92,26 @@
     const resultStatus = document.getElementById("resultStatus");
     const captchaCode = document.getElementById("captchaCode");
     const refreshCaptcha = document.getElementById("refreshCaptcha");
+    let csrfToken = "";
 
     function generateCaptcha() {
       return Math.floor(1000 + Math.random() * 9000).toString();
     }
 
+    async function loadCsrfToken() {
+      const response = await fetch(`${API_BASE}/api/csrf-token`, { credentials: "include" });
+      const data = await response.json();
+      csrfToken = data.csrf_token || "";
+    }
+
     if (savedTheme === "dark") {
       root.classList.add("dark-mode");
     }
+
+    loadCsrfToken().catch(() => {
+      resultStatus.textContent = "Security token could not be loaded. Please refresh the page.";
+      resultStatus.className = "form-status error";
+    });
 
     captchaCode.textContent = generateCaptcha();
 
@@ -115,7 +127,8 @@
 
       const response = await fetch(`${API_BASE}/api/result`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
         body: JSON.stringify(payload)
       });
 

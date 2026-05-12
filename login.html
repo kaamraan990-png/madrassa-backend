@@ -71,10 +71,22 @@
     const savedTheme = localStorage.getItem("du-theme");
     const loginForm = document.getElementById("loginForm");
     const loginStatus = document.getElementById("loginStatus");
+    let csrfToken = "";
+
+    async function loadCsrfToken() {
+      const response = await fetch(`${API_BASE}/api/csrf-token`, { credentials: "include" });
+      const data = await response.json();
+      csrfToken = data.csrf_token || "";
+    }
 
     if (savedTheme === "dark") {
       root.classList.add("dark-mode");
     }
+
+    loadCsrfToken().catch(() => {
+      loginStatus.textContent = "Security token could not be loaded. Please refresh the page.";
+      loginStatus.className = "form-status error";
+    });
 
     loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -83,7 +95,8 @@
 
       const response = await fetch(`${API_BASE}/api/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        credentials: "include",
         body: JSON.stringify(payload)
       });
 

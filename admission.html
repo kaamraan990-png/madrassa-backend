@@ -8,6 +8,27 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
+  <style>
+    .step-track{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 24px;}
+    .step-pill{min-height:42px;border:1px solid var(--border);border-radius:999px;background:var(--surface-strong);color:var(--muted);font-weight:800;font-size:.82rem;}
+    .step-pill.active{background:var(--primary-deep);border-color:var(--primary-deep);color:#fff;}
+    .form-step{display:none;}
+    .form-step.active{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .form-actions{grid-column:1/-1;display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:4px;}
+    .full-row{grid-column:1/-1;}
+    .registration-form textarea{min-height:108px;width:100%;padding:14px 16px;border:1px solid var(--border);border-radius:12px;font:inherit;color:var(--text);background:var(--surface-strong);outline:none;resize:vertical;}
+    .registration-form textarea:focus,.registration-form input:focus,.registration-form select:focus{border-color:var(--primary);}
+    .upload-note{margin:2px 0 0;color:var(--muted);font-size:.78rem;line-height:1.5;}
+    .upload-card{display:grid;gap:8px;}
+    .upload-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;}
+    .upload-row .btn{min-height:42px;padding:0 14px;font-size:.82rem;}
+    .view-upload{visibility:hidden;pointer-events:none;text-align:center;}
+    .view-upload.ready{visibility:visible;pointer-events:auto;}
+    .upload-state{min-height:18px;margin:0;color:var(--muted);font-size:.76rem;font-weight:700;}
+    .upload-state.success{color:#16a34a;}
+    .upload-state.error{color:#dc2626;}
+    @media(max-width:720px){.step-track,.form-step.active{grid-template-columns:1fr}.form-actions{flex-direction:column;align-items:stretch}.form-actions .btn{width:100%;}.upload-row{grid-template-columns:1fr}.view-upload{width:100%;}}
+  </style>
 </head>
 <body class="portal-page-body">
   <div class="page-shell portal-page-shell">
@@ -16,7 +37,7 @@
       <div>
         <p class="section-tag">Online Admission</p>
         <h1 class="portal-page-title">Student Admission Portal</h1>
-        <p class="portal-page-copy">Fill in the admission form to request registration for Hifz-ul-Quran or Islamic Studies.</p>
+        <p class="portal-page-copy">Complete registration, student details, document upload, and payment details in one form.</p>
       </div>
     </header>
 
@@ -30,46 +51,146 @@
             </div>
             <span class="portal-status">Open Now</span>
           </div>
-          <p class="portal-intro">Submit the student details below. Required fields must be completed before sending.</p>
+
+          <div class="step-track" aria-label="Admission steps">
+            <button class="step-pill active" type="button" data-step-label="0">1. Registration</button>
+            <button class="step-pill" type="button" data-step-label="1">2. More Details</button>
+            <button class="step-pill" type="button" data-step-label="2">3. Payment</button>
+          </div>
+
           <form class="registration-form" id="admissionForm">
-            <label>
-              <span>Student Name</span>
-              <input type="text" name="student_name" placeholder="Enter student name">
-            </label>
-            <label>
-              <span>Parent Name</span>
-              <input type="text" name="parent_name" placeholder="Enter parent name">
-            </label>
-            <label>
-              <span>Phone Number</span>
-              <input type="tel" name="phone" placeholder="Enter phone number">
-            </label>
-            <label>
-              <span>Preferred Course</span>
-              <select name="course">
-                <option>Hifz-ul-Quran</option>
-                <option>Islamic Studies</option>
-                <option>Hifz + Islamic Studies</option>
-              </select>
-            </label>
-            <div class="captcha-wrap">
-              <div class="captcha-box">
-                <span class="captcha-label">Security Code</span>
-                <strong id="captchaCode">8472</strong>
+            <div class="form-step active" data-step="0">
+              <label>
+                <span>Student Name</span>
+                <input type="text" name="student_name" placeholder="Enter student name" required>
+              </label>
+              <label>
+                <span>Parent Name</span>
+                <input type="text" name="parent_name" placeholder="Enter parent name" required>
+              </label>
+              <label>
+                <span>Phone Number</span>
+                <input type="tel" name="phone" placeholder="Enter phone number" required>
+              </label>
+              <label>
+                <span>Email Address</span>
+                <input type="email" name="email" placeholder="student@example.com" required>
+              </label>
+              <label>
+                <span>Preferred Course</span>
+                <select name="course" required>
+                  <option>Hifz-ul-Quran</option>
+                  <option>Islamic Studies</option>
+                  <option>Hifz + Islamic Studies</option>
+                </select>
+              </label>
+              <label>
+                <span>Date of Birth</span>
+                <input type="date" name="date_of_birth">
+              </label>
+              <div class="form-actions">
+                <span></span>
+                <button type="button" class="btn btn-primary" id="nextToDetails">Next</button>
               </div>
-              <button class="btn btn-secondary captcha-refresh" id="refreshCaptcha" type="button">Refresh</button>
             </div>
-            <label class="captcha-input">
-              <span>Enter Captcha</span>
-              <input type="text" name="captcha" placeholder="Type the code above">
-            </label>
-            <button type="submit" class="btn btn-primary">Submit Registration</button>
+
+            <div class="form-step" data-step="1">
+              <label>
+                <span>Age</span>
+                <input type="number" name="age" min="1" max="100" placeholder="Enter age" required>
+              </label>
+              <label>
+                <span>School Qualification</span>
+                <input type="text" name="qualification_school" placeholder="Previous school class or qualification">
+              </label>
+              <label>
+                <span>Madrassa Qualification</span>
+                <input type="text" name="qualification_madrassa" placeholder="Previous madrassa class or sabaq">
+              </label>
+              <div class="upload-card">
+                <label for="aadharFile"><span>Aadhaar Card</span></label>
+                <div class="upload-row">
+                  <input type="file" id="aadharFile" name="aadhar_file" accept="image/*,.pdf" required>
+                  <button class="btn btn-secondary" type="button" data-upload="aadhar">Upload</button>
+                  <a class="btn btn-secondary view-upload" id="aadharView" href="#" target="_blank" rel="noopener">View</a>
+                </div>
+                <input type="hidden" name="aadhar_document" id="aadharDocument">
+                <small class="upload-note">Only Aadhaar card upload is accepted here.</small>
+                <p class="upload-state" id="aadharState"></p>
+              </div>
+              <div class="upload-card">
+                <label for="photoFile"><span>Photo</span></label>
+                <div class="upload-row">
+                  <input type="file" id="photoFile" name="photo_file" accept="image/*" required>
+                  <button class="btn btn-secondary" type="button" data-upload="photo">Upload</button>
+                  <a class="btn btn-secondary view-upload" id="photoView" href="#" target="_blank" rel="noopener">View</a>
+                </div>
+                <input type="hidden" name="photo_document" id="photoDocument">
+                <small class="upload-note">Student photo only.</small>
+                <p class="upload-state" id="photoState"></p>
+              </div>
+              <div class="upload-card">
+                <label for="signatureFile"><span>Signature</span></label>
+                <div class="upload-row">
+                  <input type="file" id="signatureFile" name="signature_file" accept="image/*" required>
+                  <button class="btn btn-secondary" type="button" data-upload="signature">Upload</button>
+                  <a class="btn btn-secondary view-upload" id="signatureView" href="#" target="_blank" rel="noopener">View</a>
+                </div>
+                <input type="hidden" name="signature_document" id="signatureDocument">
+                <small class="upload-note">Student or guardian signature only.</small>
+                <p class="upload-state" id="signatureState"></p>
+              </div>
+              <label class="full-row">
+                <span>Address</span>
+                <textarea name="address" placeholder="Enter complete address" required></textarea>
+              </label>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" data-prev>Back</button>
+                <button type="button" class="btn btn-primary" id="nextToPayment">Next</button>
+              </div>
+            </div>
+
+            <div class="form-step" data-step="2">
+              <label>
+                <span>Payment Method</span>
+                <select name="payment_method">
+                  <option>Cash at Office</option>
+                  <option>UPI</option>
+                  <option>Bank Transfer</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label>
+                <span>Payment Amount</span>
+                <input type="number" name="payment_amount" min="0" placeholder="Enter amount paid">
+              </label>
+              <label class="full-row">
+                <span>Payment Reference</span>
+                <input type="text" name="payment_reference" placeholder="Transaction ID or office receipt number">
+              </label>
+              <div class="captcha-wrap">
+                <div class="captcha-box">
+                  <span class="captcha-label">Security Code</span>
+                  <strong id="captchaCode">8472</strong>
+                </div>
+                <button class="btn btn-secondary captcha-refresh" id="refreshCaptcha" type="button">Refresh</button>
+              </div>
+              <label class="captcha-input">
+                <span>Enter Captcha</span>
+                <input type="text" name="captcha" placeholder="Type the code above" required>
+              </label>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" data-prev>Back</button>
+                <button type="submit" class="btn btn-primary">Submit Registration</button>
+              </div>
+            </div>
           </form>
           <p class="form-status" id="admissionStatus"></p>
         </article>
       </section>
     </main>
   </div>
+
   <script>
     const root = document.documentElement;
     const API_BASE = window.location.origin;
@@ -78,14 +199,128 @@
     const refreshCaptcha = document.getElementById("refreshCaptcha");
     const admissionForm = document.getElementById("admissionForm");
     const admissionStatus = document.getElementById("admissionStatus");
+    const steps = [...document.querySelectorAll(".form-step")];
+    const stepLabels = [...document.querySelectorAll(".step-pill")];
+    let currentStep = 0;
+    let csrfToken = "";
+    const documentUploads = {
+      aadhar: {
+        label: "Aadhaar Card",
+        file: document.getElementById("aadharFile"),
+        hidden: document.getElementById("aadharDocument"),
+        view: document.getElementById("aadharView"),
+        state: document.getElementById("aadharState"),
+        objectUrl: ""
+      },
+      photo: {
+        label: "Photo",
+        file: document.getElementById("photoFile"),
+        hidden: document.getElementById("photoDocument"),
+        view: document.getElementById("photoView"),
+        state: document.getElementById("photoState"),
+        objectUrl: ""
+      },
+      signature: {
+        label: "Signature",
+        file: document.getElementById("signatureFile"),
+        hidden: document.getElementById("signatureDocument"),
+        view: document.getElementById("signatureView"),
+        state: document.getElementById("signatureState"),
+        objectUrl: ""
+      }
+    };
 
     function generateCaptcha() {
       return Math.floor(1000 + Math.random() * 9000).toString();
     }
 
+    async function loadCsrfToken() {
+      const response = await fetch(`${API_BASE}/api/csrf-token`, { credentials: "include" });
+      const data = await response.json();
+      csrfToken = data.csrf_token || "";
+    }
+
+    function showStep(step) {
+      currentStep = step;
+      steps.forEach((panel, index) => panel.classList.toggle("active", index === step));
+      stepLabels.forEach((label, index) => label.classList.toggle("active", index === step));
+      admissionStatus.textContent = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function validateStep(step) {
+      const fields = [...steps[step].querySelectorAll("input, select, textarea")];
+      return fields.every((field) => field.reportValidity());
+    }
+
+    function fileToDataUrl(fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return Promise.resolve("");
+      const maxSize = 2 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return Promise.reject(new Error(`${fileInput.dataset.label || "File"} must be 2 MB or smaller.`));
+      }
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Unable to read uploaded file."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setUploadState(upload, message, status) {
+      upload.state.textContent = message;
+      upload.state.className = `upload-state ${status || ""}`;
+    }
+
+    function clearUpload(upload) {
+      if (upload.objectUrl) {
+        URL.revokeObjectURL(upload.objectUrl);
+      }
+      upload.objectUrl = "";
+      upload.hidden.value = "";
+      upload.view.href = "#";
+      upload.view.classList.remove("ready");
+      setUploadState(upload, "Choose a file, then click Upload.", "");
+    }
+
+    async function prepareUpload(type) {
+      const upload = documentUploads[type];
+      upload.file.dataset.label = upload.label;
+      if (!upload.file.reportValidity()) return false;
+      try {
+        setUploadState(upload, "Uploading...", "");
+        const dataUrl = await fileToDataUrl(upload.file);
+        upload.hidden.value = dataUrl;
+        upload.objectUrl = URL.createObjectURL(upload.file.files[0]);
+        upload.view.href = upload.objectUrl;
+        upload.view.classList.add("ready");
+        setUploadState(upload, `${upload.label} uploaded. Click View to check it.`, "success");
+        return true;
+      } catch (err) {
+        clearUpload(upload);
+        setUploadState(upload, err?.message || `Unable to upload ${upload.label}.`, "error");
+        return false;
+      }
+    }
+
+    function validateDocumentUploads() {
+      const missing = Object.values(documentUploads).filter((upload) => !upload.hidden.value);
+      if (!missing.length) return true;
+      missing.forEach((upload) => setUploadState(upload, `${upload.label} must be uploaded before payment.`, "error"));
+      admissionStatus.textContent = "Please click Upload for Aadhaar card, photo, and signature before continuing.";
+      admissionStatus.className = "form-status error";
+      return false;
+    }
+
     if (savedTheme === "dark") {
       root.classList.add("dark-mode");
     }
+
+    loadCsrfToken().catch(() => {
+      admissionStatus.textContent = "Security token could not be loaded. Please refresh the page.";
+      admissionStatus.className = "form-status error";
+    });
 
     captchaCode.textContent = generateCaptcha();
 
@@ -93,28 +328,82 @@
       captchaCode.textContent = generateCaptcha();
     });
 
+    Object.entries(documentUploads).forEach(([type, upload]) => {
+      clearUpload(upload);
+      upload.file.addEventListener("change", () => clearUpload(upload));
+      document.querySelector(`[data-upload="${type}"]`).addEventListener("click", () => prepareUpload(type));
+      upload.view.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (!upload.hidden.value) {
+          setUploadState(upload, `Please upload ${upload.label} first.`, "error");
+          return;
+        }
+        const preview = window.open(upload.objectUrl, "_blank", "noopener");
+        if (!preview) {
+          setUploadState(upload, "Popup blocked. Please allow popups or long-press View and open in a new tab.", "error");
+        }
+      });
+    });
+
+    document.getElementById("nextToDetails").addEventListener("click", () => {
+      if (validateStep(0)) showStep(1);
+    });
+
+    document.getElementById("nextToPayment").addEventListener("click", () => {
+      if (validateStep(1) && validateDocumentUploads()) showStep(2);
+    });
+
+    document.querySelectorAll("[data-prev]").forEach((button) => {
+      button.addEventListener("click", () => showStep(Math.max(0, currentStep - 1)));
+    });
+
     admissionForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (!validateStep(2)) return;
+      if (admissionForm.captcha.value.trim() !== captchaCode.textContent.trim()) {
+        admissionStatus.textContent = "Captcha does not match. Please refresh and try again.";
+        admissionStatus.className = "form-status error";
+        return;
+      }
+
+      admissionStatus.textContent = "Submitting registration...";
+      admissionStatus.className = "form-status";
+
       const formData = new FormData(admissionForm);
       const payload = Object.fromEntries(formData.entries());
+      delete payload.aadhar_file;
+      delete payload.photo_file;
+      delete payload.signature_file;
+      payload.previous_education = [
+        payload.qualification_school ? `School: ${payload.qualification_school}` : "",
+        payload.qualification_madrassa ? `Madrassa: ${payload.qualification_madrassa}` : ""
+      ].filter(Boolean).join(" | ");
+      payload.payment_status = "Submitted";
 
-      let result;
       try {
+        if (!validateDocumentUploads()) return;
+
         const response = await fetch(`${API_BASE}/api/admissions`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+          credentials: "include",
           body: JSON.stringify(payload)
         });
-        result = await response.json();
-      } catch (err) {
-        result = { ok: false, message: alert("Connection error. Is the server running at " + API_BASE) };
-      }
-      admissionStatus.textContent = result.message;
-      admissionStatus.className = `form-status ${result.ok ? "success" : "error"}`;
+        const result = await response.json();
+        admissionStatus.textContent = result.message;
+        admissionStatus.className = `form-status ${result.ok ? "success" : "error"}`;
 
-      if (result.ok) {
-        admissionForm.reset();
-        captchaCode.textContent = generateCaptcha();
+        if (result.ok) {
+          admissionForm.reset();
+          Object.values(documentUploads).forEach(clearUpload);
+          captchaCode.textContent = generateCaptcha();
+          showStep(0);
+          admissionStatus.textContent = result.message;
+          admissionStatus.className = "form-status success";
+        }
+      } catch (err) {
+        admissionStatus.textContent = err?.message || `Connection error. Is the server running at ${API_BASE}?`;
+        admissionStatus.className = "form-status error";
       }
     });
   </script>

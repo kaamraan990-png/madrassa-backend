@@ -99,6 +99,16 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            pdf_url TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     cur.execute("SELECT COUNT(*) FROM students")
     if cur.fetchone()[0] == 0:
         cur.executemany("""
@@ -341,6 +351,13 @@ class MadrassaHandler(BaseHTTPRequestHandler):
             self._send_json({"ok": True, "results": [dict(r) for r in results]})
             return
 
+        if path == "/api/notifications":
+            conn = get_connection()
+            rows = conn.execute("SELECT id, title, message, pdf_url, created_at FROM notifications ORDER BY created_at DESC").fetchall()
+            conn.close()
+            self._send_json({"ok": True, "notifications": [dict(r) for r in rows]})
+            return
+
         self.send_error(404, "Not Found")
 
     def do_POST(self):
@@ -516,6 +533,9 @@ class MadrassaHandler(BaseHTTPRequestHandler):
             except ValueError:
                 self._send_json({"ok": False, "message": "Marks must be numbers."}, 400)
                 return
+            if obtained_marks > total_marks:
+                self._send_json({"ok": False, "message": "Obtained marks cannot exceed total marks."}, 400)
+                return
             conn = get_connection()
             try:
                 conn.execute("""
@@ -529,6 +549,26 @@ class MadrassaHandler(BaseHTTPRequestHandler):
                 return
             conn.close()
             self._send_json({"ok": True, "message": "Result added successfully."})
+            return
+
+        if path == "/api/notifications":
+            if not self._require_admin():
+                return
+            payload = read_json(self)
+            title = payload.get("title", "").strip()
+            message = payload.get("message", "").strip()
+            pdf_url = payload.get("pdf_url", "").strip()
+            if not title or not message:
+                self._send_json({"ok": False, "message": "Please provide both title and message."}, 400)
+                return
+            conn = get_connection()
+            conn.execute(
+                "INSERT INTO notifications (title, message, pdf_url) VALUES (?, ?, ?)",
+                (title, message, pdf_url)
+            )
+            conn.commit()
+            conn.close()
+            self._send_json({"ok": True, "message": "Notification saved successfully."})
             return
 
         self.send_error(404, "Not Found")
@@ -616,6 +656,20 @@ class MadrassaHandler(BaseHTTPRequestHandler):
             conn.commit()
             conn.close()
             self._send_json({"ok": True, "message": "Result deleted."})
+            return
+
+        if path.startswith("/api/notifications/"):
+            if not self._require_admin():
+                return
+            notification_id = path.split("/")[-1]
+            if not notification_id.isdigit():
+                self._send_json({"ok": False, "message": "Invalid notification ID."}, 400)
+                return
+            conn = get_connection()
+            conn.execute("DELETE FROM notifications WHERE id = ?", (notification_id,))
+            conn.commit()
+            conn.close()
+            self._send_json({"ok": True, "message": "Notification deleted."})
             return
         
         self.send_error(404, "Not Found")
